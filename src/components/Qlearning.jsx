@@ -185,7 +185,7 @@ function Qlearning({ episodeIndex, stepIndex, setEpisodeIndex, setStepIndex }) {
       <div style={{ background: "#f1f3f5", padding: "0.6rem 1rem", borderRadius: "10px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)", textAlign: "center", maxWidth: "560px", margin: "auto", fontSize: "0.8rem" }}>
         <h4 style={{ color: "#0077b6", marginBottom: "4px", fontSize: "0.9rem" }}>Update Rule</h4>
         <p style={{ margin: "3px 0" }}>Q(s,a) ← Q(s,a) + α [ r + γ max(Q(s′,a′)) − Q(s,a) ]</p>
-        <p style={{ margin: "3px 0", background: "#e0f2f1", padding: "5px", borderRadius: "4px" }}>
+        <p style={{ margin: "3px 0", padding: "5px", borderRadius: "4px" }}>
           <b>{qValues[action].toFixed(2)}</b> + 0.1 × [ <b>{reward}</b> + 0.9 × (<b>{nextMaxQ.toFixed(2)}</b>) − (<b>{qValues[action].toFixed(2)}</b>) ]
         </p>
         <p style={{ margin: "3px 0" }}>Q-Table[{stateToCoord(state)}][{arrows[action]}] = <b style={{ color: "#005f99" }}>{updatedQ.toFixed(3)}</b></p>
