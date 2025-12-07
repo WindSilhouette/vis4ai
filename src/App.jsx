@@ -1,8 +1,10 @@
 // App.jsx
 import { useState } from "react";
-import Qlearning from "./components/Qlearning";
-import Deepqlearning from "./components/Deepqlearning";
+import QlearningCliffwalk from "./components/QlearningCliffwalk";
+import DeepqCliffwalk from "./components/DeepqCliffwalk";
 import TutorialOverlay from "./components/TutorialOverlay";
+import DeepqCartpole from "./components/DeepqCartpole";
+import QlearningCartpole from "./components/QlearningCartpole";
 
 function App() {
   const [qEpisodeIndex, setQEpisodeIndex] = useState(0);
@@ -11,15 +13,24 @@ function App() {
   const [dqEpisodeIndex, setDQEpisodeIndex] = useState(0);
   const [dqStepIndex, setDQStepIndex] = useState(0);
 
-  // tutorial + dimming state
   const [showTutorial, setShowTutorial] = useState(true);
-  // "left" | "right" | "both" | null
   const [focusSide, setFocusSide] = useState("both");
 
+  const [environment, setEnvironment] = useState("cliffwalk"); // "cliffwalk" or "cartpole"
+
+  const headerHeight = 50; // height of top buttons
   const containerStyle = {
     display: "flex",
-    width: "99vw",
-    height: "120vh",
+    width: "100%",
+    height: `calc(100vh - ${headerHeight}px)`, 
+    overflow: "hidden",
+    flexDirection: "column",
+  };
+
+  const panelsWrapperStyle = {
+    display: "flex",
+    flex: 1,
+    overflow: "hidden",
   };
 
   const panelStyle = {
@@ -36,23 +47,30 @@ function App() {
     padding: "1rem",
   };
 
-  const helpButtonWrapper = {
-    position: "fixed",
-    top: "30px",
-    right: "30px",
-    zIndex: 20,
+  const buttonWrapperStyle = {
+    display: "flex",
+    justifyContent: "center",
+    padding: "0.5rem",
+    gap: "1rem",
+    background: "#f8f9fa",
+    borderBottom: "1px solid #ddd",
+    height: `${headerHeight}px`,
+    boxSizing: "border-box",
+    width: "100%",        // <-- force full width
+    position: "sticky",   // optional: stay on top when scrolling
+    top: 0,               // required if sticky
+    left: 0,
+    zIndex: 10,
   };
 
-  const helpButtonStyle = {
-    borderRadius: "999px",
-    border: "none",
-    padding: "0.35rem 0.75rem",
-    fontSize: "0.8rem",
-    fontWeight: 600,
+
+  const toggleButtonStyle = {
+    padding: "0.4rem 0.8rem",
+    fontSize: "0.9rem",
     cursor: "pointer",
-    background: "#f3f4ff",
-    color: "#1d4ed8",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    background: "#fff",
   };
 
   const isLeftFocused =
@@ -63,70 +81,109 @@ function App() {
 
   return (
     <>
-      {/* small '?' button to reopen the tutorial */}
-      <div style={helpButtonWrapper}>
+      {/* Top Buttons */}
+      <div style={buttonWrapperStyle}>
         <button
-          style={helpButtonStyle}
+          style={toggleButtonStyle}
+          onClick={() => setEnvironment("cliffwalk")}
+          disabled={environment === "cliffwalk"}
+        >
+          CliffWalk
+        </button>
+        <button
+          style={toggleButtonStyle}
+          onClick={() => setEnvironment("cartpole")}
+          disabled={environment === "cartpole"}
+        >
+          CartPole
+        </button>
+
+        {/* Small '?' button to reopen tutorial */}
+        <button
+          style={{ ...toggleButtonStyle, marginLeft: "auto" }}
           onClick={() => {
             setShowTutorial(true);
             setFocusSide("both");
           }}
         >
-          (?) Tutorial
+          Tutorial
         </button>
       </div>
 
       <div style={containerStyle}>
-        {/* Left Panel – Q-Learning (CliffWalk) */}
-        <div
-          style={{
-            ...panelStyle,
-            backgroundColor: "#e0e0e0ff",
-            borderRight: "1px solid #ddd",
-            opacity: isLeftFocused ? 1 : 0.25,
-            boxShadow:
-              isLeftFocused && showTutorial
-                ? "0 0 0 3px rgba(37,99,235,0.35)"
-                : "none",
-            transform:
-              isLeftFocused && showTutorial ? "scale(1.01)" : "scale(1)",
-            transition:
-              "opacity 220ms ease, transform 220ms ease, box-shadow 220ms ease",
-          }}
-        >
-          <div style={contentStyle}>
-            <Qlearning
-              episodeIndex={qEpisodeIndex}
-              stepIndex={qStepIndex}
-              setEpisodeIndex={setQEpisodeIndex}
-              setStepIndex={setQStepIndex}
-            />
+        <div style={panelsWrapperStyle}>
+          {/* Left Panel */}
+          <div
+            style={{
+              ...panelStyle,
+              backgroundColor: "#e0e0e0ff",
+              borderRight: "1px solid #ddd",
+              opacity: isLeftFocused ? 1 : 0.25,
+              boxShadow:
+                isLeftFocused && showTutorial
+                  ? "0 0 0 3px rgba(37,99,235,0.35)"
+                  : "none",
+              transform:
+                isLeftFocused && showTutorial ? "scale(1.01)" : "scale(1)",
+              transition:
+                "opacity 220ms ease, transform 220ms ease, box-shadow 220ms ease",
+            }}
+          >
+            <div style={contentStyle}>
+              {environment === "cliffwalk" && (
+                <QlearningCliffwalk
+                  episodeIndex={qEpisodeIndex}
+                  stepIndex={qStepIndex}
+                  setEpisodeIndex={setQEpisodeIndex}
+                  setStepIndex={setQStepIndex}
+                />
+              )}
+              {environment === "cartpole" && (
+                <QlearningCartpole
+                  episodeIndex={qEpisodeIndex}
+                  stepIndex={qStepIndex}
+                  setEpisodeIndex={setQEpisodeIndex}
+                  setStepIndex={setQStepIndex}
+                />
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Right Panel – Deep Q-Learning (CartPole) */}
-        <div
-          style={{
-            ...panelStyle,
-            backgroundColor: "#e0e0e0ff",
-            opacity: isRightFocused ? 1 : 0.25,
-            boxShadow:
-              isRightFocused && showTutorial
-                ? "0 0 0 3px rgba(249,115,22,0.35)"
-                : "none",
-            transform:
-              isRightFocused && showTutorial ? "scale(1.01)" : "scale(1)",
-            transition:
-              "opacity 220ms ease, transform 220ms ease, box-shadow 220ms ease",
-          }}
-        >
-          <div style={contentStyle}>
-            <Deepqlearning
-              episodeIndex={dqEpisodeIndex}
-              stepIndex={dqStepIndex}
-              setEpisodeIndex={setDQEpisodeIndex}
-              setStepIndex={setDQStepIndex}
-            />
+          {/* Right Panel */}
+          <div
+            style={{
+              ...panelStyle,
+              backgroundColor: "#e0e0e0ff",
+              opacity: isRightFocused ? 1 : 0.25,
+              boxShadow:
+                isRightFocused && showTutorial
+                  ? "0 0 0 3px rgba(249,115,22,0.35)"
+                  : "none",
+              transform:
+                isRightFocused && showTutorial ? "scale(1.01)" : "scale(1)",
+              transition:
+                "opacity 220ms ease, transform 220ms ease, box-shadow 220ms ease",
+            }}
+          >
+            <div style={contentStyle}>
+              {/* Mirror panel shows same environment */}
+              {environment === "cliffwalk" && (
+                <DeepqCliffwalk
+                  episodeIndex={dqEpisodeIndex}
+                  stepIndex={dqStepIndex}
+                  setEpisodeIndex={setDQEpisodeIndex}
+                  setStepIndex={setDQStepIndex}
+                />
+              )}
+              {environment === "cartpole" && (
+                <DeepqCartpole
+                  episodeIndex={dqEpisodeIndex}
+                  stepIndex={dqStepIndex}
+                  setEpisodeIndex={setDQEpisodeIndex}
+                  setStepIndex={setDQStepIndex}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
