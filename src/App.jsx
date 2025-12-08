@@ -1,4 +1,4 @@
-// App.jsx
+// src/App.jsx
 import { useState } from "react";
 import QlearningCliffwalk from "./components/QlearningCliffwalk";
 import DeepqCliffwalk from "./components/DeepqCliffwalk";
@@ -14,15 +14,16 @@ function App() {
   const [dqStepIndex, setDQStepIndex] = useState(0);
 
   const [showTutorial, setShowTutorial] = useState(true);
-  const [focusSide, setFocusSide] = useState("both");
+  const [focusSide, setFocusSide] = useState("both"); // "left" | "right" | "both" | null
 
   const [environment, setEnvironment] = useState("cliffwalk"); // "cliffwalk" or "cartpole"
 
-  const headerHeight = 50; // height of top buttons
+  const headerHeight = 56;
+
   const containerStyle = {
     display: "flex",
-    width: "100%",
-    height: `calc(100vh - ${headerHeight}px)`, 
+    width: "100vw",
+    height: `calc(100vh - ${headerHeight}px)`,
     overflow: "hidden",
     flexDirection: "column",
   };
@@ -34,11 +35,14 @@ function App() {
   };
 
   const panelStyle = {
-    width: "50%",
+    flex: 1,
     height: "100%",
     display: "flex",
     flexDirection: "column",
-    overflow: "hidden",
+    border: "1px solid #e5e7eb",
+    backgroundColor: "#e5e7eb",
+    transition:
+      "opacity 220ms ease, transform 220ms ease, box-shadow 220ms ease",
   };
 
   const contentStyle = {
@@ -49,28 +53,35 @@ function App() {
 
   const buttonWrapperStyle = {
     display: "flex",
-    justifyContent: "center",
-    padding: "0.5rem",
-    gap: "1rem",
-    background: "#f8f9fa",
-    borderBottom: "1px solid #ddd",
+    alignItems: "center",
+    padding: "0.5rem 0.75rem",
+    gap: "0.75rem",
+    background: "#f8fafc",
+    borderBottom: "1px solid #e5e7eb",
+    position: "relative",
     height: `${headerHeight}px`,
     boxSizing: "border-box",
-    width: "100%",        // <-- force full width
-    position: "sticky",   // optional: stay on top when scrolling
-    top: 0,               // required if sticky
-    left: 0,
-    zIndex: 10,
   };
 
-
   const toggleButtonStyle = {
-    padding: "0.4rem 0.8rem",
+    padding: "0.35rem 0.9rem",
     fontSize: "0.9rem",
     cursor: "pointer",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-    background: "#fff",
+    borderRadius: "999px",
+    border: "1px solid #cbd5f5",
+    background: "#ffffff",
+    fontWeight: 500,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: "96px",
+  };
+
+  const tutorialButtonStyle = {
+    ...toggleButtonStyle,
+    marginLeft: "auto",
+    borderColor: "#2563eb",
+    color: "#2563eb",
   };
 
   const isLeftFocused =
@@ -81,26 +92,39 @@ function App() {
 
   return (
     <>
-      {/* Top Buttons */}
-      <div style={buttonWrapperStyle}>
+      {/* Top controls: environment tabs + tutorial button */}
+      <div id="top-controls" style={buttonWrapperStyle}>
         <button
-          style={toggleButtonStyle}
+          style={{
+            ...toggleButtonStyle,
+            background:
+              environment === "cliffwalk" ? "#2563eb" : toggleButtonStyle.background,
+            color: environment === "cliffwalk" ? "#ffffff" : "#111827",
+            borderColor: environment === "cliffwalk" ? "#2563eb" : "#cbd5f5",
+          }}
           onClick={() => setEnvironment("cliffwalk")}
           disabled={environment === "cliffwalk"}
         >
           CliffWalk
         </button>
+
         <button
-          style={toggleButtonStyle}
+          style={{
+            ...toggleButtonStyle,
+            background:
+              environment === "cartpole" ? "#2563eb" : toggleButtonStyle.background,
+            color: environment === "cartpole" ? "#ffffff" : "#111827",
+            borderColor: environment === "cartpole" ? "#2563eb" : "#cbd5f5",
+          }}
           onClick={() => setEnvironment("cartpole")}
           disabled={environment === "cartpole"}
         >
           CartPole
         </button>
 
-        {/* Small '?' button to reopen tutorial */}
+        {/* Reopen tutorial */}
         <button
-          style={{ ...toggleButtonStyle, marginLeft: "auto" }}
+          style={tutorialButtonStyle}
           onClick={() => {
             setShowTutorial(true);
             setFocusSide("both");
@@ -110,23 +134,20 @@ function App() {
         </button>
       </div>
 
+      {/* Main two-panel layout */}
       <div style={containerStyle}>
-        <div style={panelsWrapperStyle}>
-          {/* Left Panel */}
+        <div id="panels-wrapper" style={panelsWrapperStyle}>
+          {/* Left Panel: Q-learning side */}
           <div
+            id="left-panel"
             style={{
               ...panelStyle,
-              backgroundColor: "#e0e0e0ff",
-              borderRight: "1px solid #ddd",
               opacity: isLeftFocused ? 1 : 0.25,
               boxShadow:
                 isLeftFocused && showTutorial
                   ? "0 0 0 3px rgba(37,99,235,0.35)"
                   : "none",
-              transform:
-                isLeftFocused && showTutorial ? "scale(1.01)" : "scale(1)",
-              transition:
-                "opacity 220ms ease, transform 220ms ease, box-shadow 220ms ease",
+              transform: isLeftFocused && showTutorial ? "scale(1.01)" : "scale(1)",
             }}
           >
             <div style={contentStyle}>
@@ -149,24 +170,20 @@ function App() {
             </div>
           </div>
 
-          {/* Right Panel */}
+          {/* Right Panel: DQN side */}
           <div
+            id="right-panel"
             style={{
               ...panelStyle,
-              backgroundColor: "#e0e0e0ff",
               opacity: isRightFocused ? 1 : 0.25,
               boxShadow:
                 isRightFocused && showTutorial
                   ? "0 0 0 3px rgba(249,115,22,0.35)"
                   : "none",
-              transform:
-                isRightFocused && showTutorial ? "scale(1.01)" : "scale(1)",
-              transition:
-                "opacity 220ms ease, transform 220ms ease, box-shadow 220ms ease",
+              transform: isRightFocused && showTutorial ? "scale(1.01)" : "scale(1)",
             }}
           >
             <div style={contentStyle}>
-              {/* Mirror panel shows same environment */}
               {environment === "cliffwalk" && (
                 <DeepqCliffwalk
                   episodeIndex={dqEpisodeIndex}
@@ -190,6 +207,7 @@ function App() {
 
       {showTutorial && (
         <TutorialOverlay
+          environment={environment}
           onClose={() => {
             setShowTutorial(false);
             setFocusSide(null);
@@ -202,6 +220,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

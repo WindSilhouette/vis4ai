@@ -3,156 +3,325 @@ import { useEffect, useState } from "react";
 
 const steps = [
   {
-    title: "Welcome to the RL Playground 👋",
+    id: "welcome",
+    title: "Welcome to the Reinforcement Learning 101 👋",
     body: `
-This interface replays training for two reinforcement learning agents:
+This page is a mini-course on reinforcement learning.
 
-• Left: Q-Learning on the CliffWalk grid.
-• Right: Deep Q-Learning (DQN) on CartPole.
+You’ll watch TWO agents learn in the SAME environment:
 
-We'll walk through what RL is, how these problems are similar/different,
-and how the two algorithms work.`,
-    focus: "both",
+• Left panel: Tabular Q-Learning
+• Right panel: Deep Q-Learning (DQN)
+
+Use the tabs at the very top to switch between:
+• CliffWalk — a gridworld navigation task
+• CartPole — a classic balancing control task
+
+We’ll walk through what RL is, how to read this interface, and
+why choosing the wrong method for a problem can hurt performance.`,
+    focusSide: "both",
+    sectionId: "top-controls",
   },
   {
-    title: "What is Reinforcement Learning?",
+    id: "layout",
+    title: "Layout of the Page",
     body: `
-Reinforcement Learning (RL) is about an AGENT interacting with an ENVIRONMENT.
+Look at the two big panels:
 
-On each step:
-• The agent is in some STATE s,
-• Chooses an ACTION a,
-• The environment returns a REWARD r and a new STATE s'.
+Each side (left and right) has the same structure:
 
-The goal in both panels is the same:
-Learn a POLICY (a rule for choosing actions) that maximizes long-term reward.`,
-    focus: "both",
+1) Top of each panel:
+   • Episode slider and Step slider (scrub through training)
+2) Middle:
+   • Environment visualization + current behavior/policy
+3) Info cards:
+   • Current state, chosen action, reward, and next state
+4) Bottom:
+   • The update rule and a reward-per-episode plot
+
+Because both sides share the same layout, you can directly compare
+how Q-Learning and DQN behave on the SAME task.`,
+    focusSide: "both",
+    sectionId: "panels-wrapper",
   },
   {
-    title: "CliffWalk: Discrete Gridworld",
+    id: "rl-core",
+    title: "Reinforcement Learning in One Picture",
     body: `
-On the left, CliffWalk is a discrete grid:
+Both sides visualize the core RL loop:
 
-• States = each cell (finite).
-• Actions = ↑ → ↓ ←.
-• Green = agent, Blue = start, Yellow = goal, Red = cliff.
+• STATE s — what the agent currently observes
+• ACTION a — what it decides to do
+• REWARD r — immediate feedback from the environment
+• NEXT STATE s' — where it ends up after the action
 
-Falling into the cliff gives a big negative reward (-100), and moving a step yields a cost of -1. The agent must learn the fastest safe path along the cliff edge to reach the goal.`,
-    focus: "left",
+Over many episodes, the agent tries to learn a POLICY:
+a rule that maps states → actions to maximize long-term reward.
+
+Both Q-Learning and DQN learn an action-value function Q(s,a)
+that estimates “how good” each action is in each state.`,
+    focusSide: "both",
+    sectionId: "panels-wrapper",
   },
   {
-    title: "Q-Learning & the Q-Table",
+    id: "cliffwalk-env",
+    title: "CliffWalk Environment (Discrete Grid)",
     body: `
-Q-Learning stores a value Q(s,a) for every (state, action) pair
-in a Q-TABLE.
+Now focus on the LEFT panel and make sure the environment at the top
+is set to "CliffWalk":
 
-• The table below the grid shows Q(s,a).
-• The arrows on the grid show the greedy action: argmax_a Q(s,a).
-• As episodes progress, these values update and the path improves.
+• Each cell in the grid is a discrete STATE
+• Actions are ↑ → ↓ ←
+• Blue = start, Yellow = goal, Red = cliff, Green = agent
 
-This only works nicely because CliffWalk has a small, discrete state space.`,
-    focus: "left",
+Stepping into the cliff gives a big negative reward.
+Every move costs a small negative reward, so the agent wants a
+short, SAFE path along the edge.
+
+This is a small, nicely discrete world — perfect for a table-based
+method like tabular Q-Learning.`,
+    focusSide: "left",
+    sectionId: "left-panel",
   },
   {
-    title: "The Q-Learning Update Rule",
+    id: "qlearning-good-match",
+    title: "Why Q-Learning Fits CliffWalk",
     body: `
-At the bottom left, you see the Q-Learning update:
+On the LEFT panel, Q-Learning stores Q(s,a) in a Q-TABLE.
 
-  Q(s,a) ← Q(s,a) + α [ r + γ max_a' Q(s',a') − Q(s,a) ]
+Try this:
 
-The blue/orange cards show:
-• Current state, chosen action, reward, next state,
-• The exact numbers plugged into the formula,
-• The updated Q(s,a) value in the table.`,
-    focus: "left",
+1) Move the Episode slider from early to late episodes.
+2) Scrub the Step slider within an episode.
+
+Watch how:
+
+• The arrows or colors in the grid stabilize into a shortest safe path
+• The Q-table under the grid (if shown) becomes more confident
+• The reward-per-episode plot trends upward and then stabilizes
+
+Here, tabular Q-Learning is efficient and interpretable:
+you can literally look up “what the agent thinks” for each (s,a).`,
+    focusSide: "left",
+    sectionId: "left-panel",
   },
   {
-    title: "CartPole: Continuous Control",
+    id: "dqn-on-cliffwalk",
+    title: "DQN on CliffWalk: Overkill",
     body: `
-On the right, CartPole is a continuous control problem:
+Now look at the RIGHT panel while still on CliffWalk.
 
-STATE = [cart position, cart velocity, pole angle, pole angular velocity] (infinite)
-ACTIONS = push cart left or right.
+The environment is the SAME, but here Q(s,a) is approximated by
+a neural network (DQN) instead of a table.
 
-This is still RL (state, action, reward), but the state space is continuous. However, we can't make a Q-table with infinitely many rows.`,
-    focus: "right",
+This has pros and cons:
+
+• Pros:
+  – Can scale to huge or continuous state spaces
+  – Can generalize between similar states
+
+• Cons on a tiny grid like CliffWalk:
+  – More parameters to tune
+  – Harder to interpret
+  – Risk of overfitting or instability for no real benefit
+
+CliffWalk is a case where a simple table is usually the better choice:
+using DQN “works”, but it’s more complexity than you need.`,
+    focusSide: "right",
+    sectionId: "right-panel",
   },
   {
-    title: "Deep Q-Learning (DQN)",
+    id: "switch-cartpole",
+    title: "Switch to CartPole 🕹️",
     body: `
-To handle continuous states, we approximate Q(s,a) with a neural network.
+Now let’s see the opposite scenario.
 
-• Left side shows the input state values.
-• Middle "black box" is the hidden layer(s).
-• Right side shows output Q-values for actions ← and →.
+👉 At the very top of the page, CLICK the "CartPole" tab.
 
-The chosen action is highlighted. Epsilon controls how often
-we explore (random action) vs exploit (greedy action).`,
-    focus: "right",
+Both panels will switch to the CartPole environment.
+
+CartPole state is continuous, typically something like:
+[cart position, cart velocity, pole angle, pole angular velocity]
+
+Actions are:
+• push cart left
+• push cart right
+
+The goal is to keep the pole upright for as many time steps as possible.
+
+Because the state is continuous, a naive Q-table either:
+• explodes in size, or
+• relies on very coarse discretization (losing information).`,
+    focusSide: "both",
+    sectionId: "top-controls",
   },
   {
-    title: "DQN Update & Loss",
+    id: "qlearning-bad-match-cartpole",
+    title: "Q-Learning Struggles on CartPole",
     body: `
-At the bottom right, you see the DQN target and loss:
+Focus on the LEFT panel while CartPole is selected.
 
-  Target = r + γ max_a' Q_target(s',a')
-  Loss   = (Target − Q(s,a))²
+Try:
 
-As you scrub through episodes and steps, you can watch how the target and loss evolve while the agent learns to balance the pole. The loss is used to update the weights of the neural network instead of updating a cell in a Q-table.`,
-    focus: "right",
+1) Move to early episodes — behavior is usually very unstable.
+2) Move to much later episodes — performance may improve, but
+   it often stays noisy or fragile.
+
+Why? Because tabular Q-Learning has to discretize a continuous state:
+
+• Many states that are actually different get merged into the same bin
+• The agent cannot smoothly generalize to “nearby” states
+• Small changes in angle/velocity can require very different actions
+
+This is a case where the METHOD is a bad match for the PROBLEM.`,
+    focusSide: "left",
+    sectionId: "left-panel",
   },
   {
-    title: "How the Two Problems Connect",
+    id: "dqn-good-match-cartpole",
+    title: "DQN on CartPole: Right Tool for the Job",
     body: `
-Both CliffWalk and CartPole are RL tasks:
+Now look at the RIGHT panel for CartPole.
 
-• An agent interacts with an environment.
-• Both use Q-values and Bellman's idea of bootstrapping.
-• Both try to maximize long-term reward over an episode.
+Here, DQN uses a neural network to approximate Q(s,a):
 
-They differ in representation:
-• CliffWalk: small, discrete states → tabular Q-Learning is perfect.
-• CartPole: continuous states → we need function approximation (DQN).`,
-    focus: "both",
+• Inputs: the continuous state values
+• Hidden layers: learn useful features automatically
+• Outputs: Q-values for each action (left/right)
+
+Because the network is continuous, it can generalize:
+states that are “similar” in angle/velocity correspond to similar Q-values.
+
+Compare the reward-per-episode trend for DQN vs Q-Learning on CartPole:
+DQN usually learns a more stable, high-reward policy.`,
+    focusSide: "right",
+    sectionId: "right-panel",
   },
   {
-    title: "Using This Interface",
+    id: "reward-curves",
+    title: "Using Reward Curves to Judge Methods",
     body: `
-1) Use the Episode slider to move forward/backward in training.
-2) Use the Step slider to visualize a single episode.
-3) On the left, watch how the Q-table and policy (arrows) improve.
-4) On the right, watch how the network's Q-values and loss evolve.
+Scroll down within each panel so you can see the reward-per-episode plots.
 
-You can reopen this tutorial anytime with the "?" button in the top-right.`,
-    focus: "both",
+These curves summarize how well each method is doing:
+
+• Early episodes: low reward and high variance (agent is exploring)
+• As learning progresses:
+  – Good methods: trend goes up and stabilizes
+  – Poorly matched methods: trend is noisy or plateaus early
+
+Try this experiment:
+
+1) On CliffWalk:
+   – Compare Q-Learning vs DQN reward curves.
+   – Q-Learning often wins with simpler, cleaner learning.
+
+2) On CartPole:
+   – Compare the curves again.
+   – DQN should typically achieve higher, more stable rewards.
+
+This is how you can visually see when a method is “too simple”
+or “too heavy” for a given task.`,
+    focusSide: "both",
+    sectionId: "panels-wrapper",
+  },
+  {
+    id: "hands-on",
+    title: "Hands-On: Explore Episodes and Steps",
+    body: `
+To really understand what the agents are doing:
+
+1) Pick an environment (CliffWalk or CartPole).
+2) Start at an early episode and scrub through the steps.
+   – Watch how often the agent fails or falls.
+3) Jump to a late episode and scrub again.
+   – Look for more goal-directed, stable behavior.
+4) Check how the update rule at the bottom changes Q(s,a) or the loss.
+
+Use both sides together:
+
+• Ask: “What is tabular Q-Learning seeing and updating?”
+• Ask: “What is the DQN network learning and how fast?”`,
+    focusSide: "both",
+    sectionId: "panels-wrapper",
+  },
+  {
+    id: "wrap-up",
+    title: "Key Takeaways",
+    body: `
+You’ve seen two core ideas:
+
+1) What reinforcement learning is:
+   • Agents learn from repeated interaction using reward signals.
+   • They approximate a policy (directly or via Q(s,a)).
+
+2) Why method choice matters:
+   • Discrete, small problems (like CliffWalk):
+     – Simple tabular Q-Learning is efficient and interpretable.
+   • Continuous or high-dimensional problems (like CartPole):
+     – Function approximation (DQN) is often necessary.
+
+This interface is meant as a sandbox:
+revisit episodes, switch environments, and compare curves to build
+intuition for when each method makes sense.
+
+You can reopen this tutorial anytime with the "Tutorial" button
+in the top bar.`,
+    focusSide: "both",
+    sectionId: "panels-wrapper",
   },
 ];
 
-function TutorialOverlay({ onClose, onFocusChange }) {
+function TutorialOverlay({ onClose, onFocusChange, environment }) {
   const [stepIndex, setStepIndex] = useState(0);
   const step = steps[stepIndex];
   const isFirst = stepIndex === 0;
   const isLast = stepIndex === steps.length - 1;
-  const currentFocus = step.focus || "both";
 
-  // tell App which side to dim
+  const requiresCartpole = step.id === "switch-cartpole";
+  const nextDisabled =
+    !isLast && requiresCartpole && environment !== "cartpole";
+
+  // Tell App which side to focus (left / right / both)
   useEffect(() => {
-    if (onFocusChange) onFocusChange(currentFocus);
-  }, [currentFocus, onFocusChange]);
+    if (!onFocusChange) return;
+    onFocusChange(step.focusSide || "both");
+  }, [step.focusSide, onFocusChange]);
+
+  // Highlight the relevant DOM section by id
+  useEffect(() => {
+    const prev = document.querySelectorAll(".tutorial-highlight");
+    prev.forEach((el) => el.classList.remove("tutorial-highlight"));
+
+    if (step.sectionId) {
+      const el = document.getElementById(step.sectionId);
+      if (el) {
+        el.classList.add("tutorial-highlight");
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    return () => {
+      const current = document.querySelectorAll(".tutorial-highlight");
+      current.forEach((el) => el.classList.remove("tutorial-highlight"));
+    };
+  }, [step.sectionId]);
 
   const handleClose = () => {
     if (onFocusChange) onFocusChange(null);
+    const current = document.querySelectorAll(".tutorial-highlight");
+    current.forEach((el) => el.classList.remove("tutorial-highlight"));
     onClose?.();
   };
 
-  // keyboard navigation: ← → Esc
+  // Keyboard navigation: ← → Esc
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "ArrowRight") {
-        if (!isLast) {
-          setStepIndex((i) => i + 1);
-        } else {
+        if (isLast) {
           handleClose();
+        } else if (!nextDisabled) {
+          setStepIndex((i) => i + 1);
         }
       } else if (e.key === "ArrowLeft") {
         if (!isFirst) {
@@ -165,55 +334,60 @@ function TutorialOverlay({ onClose, onFocusChange }) {
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [isFirst, isLast]);
+  }, [isFirst, isLast, nextDisabled]);
+
+  // Position & dimming:
+  //  - when focusSide === "left": overlay pushed RIGHT, no dim
+  //  - when focusSide === "right": overlay pushed LEFT, no dim
+  //  - when "both": centered with dimming
+  const isSideFocused = step.focusSide === "left" || step.focusSide === "right";
 
   const backdropStyle = {
     position: "fixed",
     inset: 0,
-    background: "rgba(15,23,42,0.40)",
+    background: isSideFocused
+      ? "transparent"
+      : "rgba(15,23,42,0.45)",
     display: "flex",
     justifyContent:
-      currentFocus === "left"
-        ? "flex-end" // dialog opposite side so sim stays visible
-        : currentFocus === "right"
-        ? "flex-start"
+      step.focusSide === "left"
+        ? "flex-end" // show box on right, leave left clear
+        : step.focusSide === "right"
+        ? "flex-start" // show box on left, leave right clear
         : "center",
-    alignItems: currentFocus === "both" ? "center" : "flex-start",
+    alignItems: "center",
     padding: "5vh 3vw",
-    zIndex: 9999,
-    pointerEvents: "none", // only panel is interactive
+    zIndex: 12000,
+    pointerEvents: "none",
   };
 
   const panelStyle = {
-    width:
-      currentFocus === "both"
-        ? "min(560px, 96vw)"
-        : "min(480px, 96vw)", // a bit narrower when hugging sides
-    maxHeight: "min(90vh, 560px)",
+    width: "min(620px, 96vw)",
+    maxHeight: "min(90vh, 580px)",
     background: "#ffffff",
-    borderRadius: "16px",
-    padding: "1.25rem 1.4rem 1.1rem",
-    boxShadow: "0 16px 48px rgba(0,0,0,0.35)",
+    borderRadius: "18px",
+    padding: "1.25rem 1.5rem 1.1rem",
+    boxShadow: "0 18px 55px rgba(0,0,0,0.45)",
     fontFamily:
       "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     display: "flex",
     flexDirection: "column",
     position: "relative",
     pointerEvents: "auto",
-    overflowY: "auto", // scroll if window is short
+    overflowY: "auto",
   };
 
   const titleStyle = {
     margin: 0,
     marginBottom: "0.6rem",
-    fontSize: "clamp(1.05rem, 1.1vw + 0.9rem, 1.25rem)",
+    fontSize: "clamp(1.1rem, 1.1vw + 0.95rem, 1.3rem)",
     fontWeight: 700,
     color: "#0f172a",
   };
 
   const bodyStyle = {
-    fontSize: "clamp(0.85rem, 0.9vw + 0.6rem, 0.98rem)",
-    lineHeight: 1.55,
+    fontSize: "clamp(0.87rem, 0.9vw + 0.65rem, 1rem)",
+    lineHeight: 1.6,
     whiteSpace: "pre-line",
     color: "#111827",
   };
@@ -289,18 +463,40 @@ function TutorialOverlay({ onClose, onFocusChange }) {
           </div>
 
           <button
-            style={primaryButton}
+            style={{
+              ...primaryButton,
+              opacity: nextDisabled ? 0.6 : 1,
+              cursor: nextDisabled ? "default" : "pointer",
+            }}
+            disabled={nextDisabled}
             onClick={() => {
               if (isLast) {
                 handleClose();
-              } else {
+              } else if (!nextDisabled) {
                 setStepIndex((i) => i + 1);
               }
             }}
           >
-            {isLast ? "Start Exploring" : "Next →"}
+            {requiresCartpole && environment !== "cartpole"
+              ? "Switch to CartPole ↑"
+              : isLast
+              ? "Start Exploring"
+              : "Next →"}
           </button>
         </div>
+
+        {requiresCartpole && environment !== "cartpole" && (
+          <div
+            style={{
+              marginTop: "0.35rem",
+              fontSize: "0.78rem",
+              color: "#b91c1c",
+              textAlign: "right",
+            }}
+          >
+            Use the "CartPole" tab at the top of the page to continue.
+          </div>
+        )}
       </div>
     </div>
   );
