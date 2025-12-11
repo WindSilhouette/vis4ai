@@ -96,11 +96,45 @@ function DeepqCliffwalk({ episodeIndex, stepIndex, setEpisodeIndex, setStepIndex
         {/* Input */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", maxHeight: "200px", overflowY: "auto" }}>
           <p style={{ fontSize: "0.85rem", marginBottom: "4px" }}>Input (One-Hot)</p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "1px", width: "200px" }}>
-            {state.map((v, i) => (
-              <div key={i} style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: v ? "#0077b6" : "#d9e2ec" }} />
-            ))}
-          </div>
+
+          {(() => {
+            const rows = 4; // fixed for CliffWalk
+            const itemsPerRow = Math.ceil(state.length / rows);
+
+            const rowArrays = Array.from({ length: rows }, (_, row) =>
+              state.slice(row * itemsPerRow, (row + 1) * itemsPerRow)
+            );
+
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                {rowArrays.map((row, rowIndex) => (
+                  <div key={rowIndex} style={{ display: "flex", flexDirection: "row", gap: "2px" }}>
+                    {row.map((v, i) => {
+                      const isLastRow = rowIndex === rows - 1;
+                      const isFirstItem = i === 0;
+
+                      // In the last row: keep only the FIRST circle
+                      if (isLastRow && !isFirstItem) {
+                        return null;
+                      }
+
+                      return (
+                        <div
+                          key={i}
+                          style={{
+                            width: "10px",
+                            height: "10px",
+                            borderRadius: "50%",
+                            backgroundColor: v ? "#0077b6" : "#d9e2ec"
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
 
         <div style={{ fontSize: "1.8rem", color: "#555" }}>→</div>
